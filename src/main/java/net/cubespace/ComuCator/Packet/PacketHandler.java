@@ -33,7 +33,7 @@ public class PacketHandler extends PacketController {
         }
     }
 
-    public void handle(final Message message) {
-        PacketManager.callListeners(message);
+    public void handle(Message message) {
+        PacketManager.addMessage(message);
     }
 }

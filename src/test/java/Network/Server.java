@@ -5,7 +5,6 @@ import net.cubespace.ComuCator.API.Annotation.PacketHandler;
 import net.cubespace.ComuCator.API.Listener.AbstractPacketListener;
 import net.cubespace.ComuCator.API.PacketManager;
 import net.cubespace.ComuCator.Discover.DiscoveryTable;
-import net.cubespace.ComuCator.P2P.P2PClient;
 import net.cubespace.ComuCator.P2P.P2PServer;
 import net.cubespace.ComuCator.Util.Logger;
 import net.cubespace.ComuCator.Util.Scheduler;
@@ -26,22 +25,16 @@ public class Server {
         PacketManager.registerPacket(TestPacket.class);
         PacketManager.registerListener(new TestListener());
 
-        Scheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
+        new Thread() {
             public void run() {
-                TestPacket testPacket = new TestPacket();
-                testPacket.setTest("test");
-                testPacket.send();
+                while(true) {
+                    TestPacket testPacket = new TestPacket();
+                    testPacket.setTest("test");
+                    testPacket.send();
+                }
             }
-        }, 1, 1);
+        }.start();
 
-
-        Scheduler.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                Logger.debug("Clients connected: " + P2PClient.clients.get());
-            }
-        }, 5000, 5000);
     }
 
     public static void main(String[] args) throws IOException {

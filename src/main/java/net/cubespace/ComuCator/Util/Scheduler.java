@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Scheduler {
     private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-    private static final ScheduledExecutorService fastExec = Executors.newScheduledThreadPool(30);
+    private static final ScheduledExecutorService fastExec = Executors.newScheduledThreadPool(10);
 
     public static ScheduledFuture<?> schedule(Runnable runnable, long millis) {
         if (millis < 20) {

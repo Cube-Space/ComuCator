@@ -1,5 +1,6 @@
 package net.cubespace.ComuCator.P2P;
 
+import net.cubespace.ComuCator.Packet.ByteHolder;
 import net.cubespace.ComuCator.Packet.DefinedPacket;
 import net.cubespace.ComuCator.Packet.ProtocolHandler;
 import net.cubespace.ComuCator.Util.Logger;
@@ -25,11 +26,20 @@ public class ClientRunnable implements Runnable {
     public void run() {
         if (!client.getSocket().isClosed()) {
             try {
-                if (client.getSocket().getInputStream().available() > 0 || client.getQueue().size() > 0) {
-                    if (client.getSocket().getInputStream().available() > 0) {
+                if (client.getSocket().getInputStream().available() > 0 || client.getQueue().size() > 0 || client.getByteQueue().size() > 0) {
+                    while (client.getSocket().getInputStream().available() > 0) {
                         DataInputStream dataInputStream = new DataInputStream(new ByteArrayInputStream(DefinedPacket.readArray(client.getSocket().getInputStream())));
                         client.getPacketHandler().handle(ProtocolHandler.readPacket(dataInputStream));
                         dataInputStream.close();
+                    }
+
+                    if (client.getByteQueue().size() > 0) {
+                        synchronized (client.getByteQueue()) {
+                            while (client.getByteQueue().size() > 0) {
+                                ByteHolder byteHolder = client.getByteQueue().poll();
+                                client.getDataOutputStream().write(byteHolder.getBytes());
+                            }
+                        }
                     }
 
                     if (client.getQueue().size() > 0) {

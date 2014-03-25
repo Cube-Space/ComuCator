@@ -4,6 +4,8 @@ import net.cubespace.ComuCator.API.Annotation.Channel;
 import net.cubespace.ComuCator.API.Annotation.PacketHandler;
 import net.cubespace.ComuCator.API.Listener.PacketListener;
 import net.cubespace.ComuCator.API.Message.Message;
+import net.cubespace.ComuCator.Cache.ChannelKeyCache;
+import net.cubespace.ComuCator.Cache.ClassKeyCache;
 import net.cubespace.ComuCator.Util.Logger;
 import net.cubespace.ComuCator.Util.StringCode;
 
@@ -13,6 +15,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author geNAZt (fabian.fassbender42@googlemail.com)
@@ -20,6 +24,28 @@ import java.util.LinkedHashMap;
 public class PacketManager {
     private final static LinkedHashMap<Long, LinkedHashMap<Long, ArrayList<ListenerMethod>>> listeners = new LinkedHashMap<>();
     private final static LinkedHashMap<Long, LinkedHashMap<Long, Class>> packets = new LinkedHashMap<>();
+    private final static BlockingQueue<net.cubespace.ComuCator.Packet.Protocol.Message> messageQueue = new LinkedBlockingQueue<>();
+
+    private static class PacketDequeue extends Thread {
+        public PacketDequeue() {
+            setName("PacketDequeue");
+        }
+
+        public void run() {
+            while(true) {
+                try {
+                    net.cubespace.ComuCator.Packet.Protocol.Message message = messageQueue.take();
+                    callListeners(message);
+                } catch (InterruptedException e) {
+
+                }
+            }
+        }
+    }
+
+    static {
+        new PacketDequeue().start();
+    }
 
     public static void callListeners(net.cubespace.ComuCator.Packet.Protocol.Message message) {
         if (!listeners.containsKey(message.getChannel()) || !listeners.get(message.getChannel()).containsKey(message.getPacket())) {
@@ -45,8 +71,8 @@ public class PacketManager {
             for (ListenerMethod listenerMethod : listeners.get(message.getChannel()).get(message.getPacket())) {
                 listenerMethod.getMethod().invoke(listenerMethod.getPacketListener(), message1);
             }
-        } catch (Exception e) {
-            Logger.warn("The packet could not be build. Make sure it has a default Constructor - " + packetClass.getName());
+        } catch (Throwable throwable) {
+            Logger.warn("Could not execute Listeners", throwable);
         }
     }
 
@@ -54,7 +80,7 @@ public class PacketManager {
         // Find the Channel
         String channel;
         if (listener.getClass().isAnnotationPresent(Channel.class)) {
-            channel = ((Channel) listener.getClass().getAnnotation(Channel.class)).value();
+            channel = listener.getClass().getAnnotation(Channel.class).value();
         } else {
             channel = listener.getChannel();
         }
@@ -75,9 +101,7 @@ public class PacketManager {
                     continue;
                 }
 
-                ListenerMethod listenerMethod = new ListenerMethod();
-                listenerMethod.setMethod(method);
-                listenerMethod.setPacketListener(listener);
+                ListenerMethod listenerMethod = new ListenerMethod(method, listener);
 
                 Long argumentKey = StringCode.getStringCode(argument.getName());
 
@@ -116,7 +140,7 @@ public class PacketManager {
         // Find the Channel
         String channel;
         if (listener.getClass().isAnnotationPresent(Channel.class)) {
-            channel = ((Channel) listener.getClass().getAnnotation(Channel.class)).value();
+            channel = listener.getClass().getAnnotation(Channel.class).value();
         } else {
             channel = listener.getChannel();
         }
@@ -147,19 +171,12 @@ public class PacketManager {
                         while (iterator.hasNext()) {
                             ListenerMethod method1 = iterator.next();
 
-                            if (method1.getMethod().equals(method)) {
+                            if (method1.getPacketListener().equals(listener)) {
                                 iterator.remove();
                             }
                         }
                     }
                 }
-            }
-        }
-
-        synchronized (listeners) {
-            // Check if Channel exists
-            if (listeners.containsKey(key)) {
-                listeners.get(key).remove(listener);
             }
         }
     }
@@ -200,7 +217,10 @@ public class PacketManager {
                     classes.put(classKey, packet);
 
                     packets.put(key, classes);
+                    ChannelKeyCache.addToCache(channel);
                 }
+
+                ClassKeyCache.addToCache(packet);
             }
         } catch (Exception e) {
             Logger.warn("The packet could not be build. Make sure it has a default Constructor - " + packet.getName());
@@ -238,6 +258,11 @@ public class PacketManager {
                 // Check if Channel exists
                 if (packets.containsKey(key)) {
                     packets.get(key).remove(classKey);
+                    ClassKeyCache.removeFromCache(packet);
+                }
+
+                if (packets.get(key).size() == 0) {
+                    ChannelKeyCache.removeFromCache(channel);
                 }
             }
 
@@ -249,5 +274,9 @@ public class PacketManager {
         } catch (Exception e) {
             Logger.warn("The packet could not be build. Make sure it has a default Constructor - " + packet.getName());
         }
+    }
+
+    public static void addMessage(net.cubespace.ComuCator.Packet.Protocol.Message message) {
+        messageQueue.add(message);
     }
 }

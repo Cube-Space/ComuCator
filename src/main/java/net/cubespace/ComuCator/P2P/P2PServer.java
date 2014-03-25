@@ -2,7 +2,6 @@ package net.cubespace.ComuCator.P2P;
 
 import lombok.Getter;
 import net.cubespace.ComuCator.Discover.DiscoveryTable;
-import net.cubespace.ComuCator.MultiCast.MultiCastServerRunnable;
 import net.cubespace.ComuCator.Packet.DefinedPacket;
 import net.cubespace.ComuCator.Packet.ProtocolHandler;
 import net.cubespace.ComuCator.Util.Logger;
@@ -46,9 +45,6 @@ public class P2PServer extends Thread {
     public void run() {
         try {
             serverSocket = new ServerSocket(port, 100, InetAddress.getByName(ip));
-
-            MultiCastServerRunnable multiCastServerRunnable = new MultiCastServerRunnable(this);
-            final ScheduledFuture multiCastServerRunnableFuture = Scheduler.scheduleAtFixedRate(multiCastServerRunnable, 10, 10);
 
             BroadCastDiscoveryTableThread tableRunnable = new BroadCastDiscoveryTableThread(this);
             final ScheduledFuture tableRunnableFuture = Scheduler.scheduleAtFixedRate(tableRunnable, 1000, 30000);
@@ -95,7 +91,6 @@ public class P2PServer extends Thread {
 
             scheduledFuture.cancel(true);
             tableRunnableFuture.cancel(true);
-            multiCastServerRunnableFuture.cancel(true);
 
             synchronized (serverToClient) {
                 serverToClient.clear();

@@ -1,8 +1,9 @@
 package net.cubespace.ComuCator.API.Message;
 
 import net.cubespace.ComuCator.API.Annotation.Channel;
+import net.cubespace.ComuCator.Cache.ChannelKeyCache;
+import net.cubespace.ComuCator.Cache.ClassKeyCache;
 import net.cubespace.ComuCator.P2P.P2PServers;
-import net.cubespace.ComuCator.Util.StringCode;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -14,17 +15,17 @@ public abstract class AbstractMessage implements Message {
     public AbstractMessage() {
         String channel;
         if (getClass().isAnnotationPresent(Channel.class)) {
-            channel = ((Channel) getClass().getAnnotation(Channel.class)).value();
+            channel = getClass().getAnnotation(Channel.class).value();
         } else {
             channel = getChannel();
         }
 
-        if (channel != null) {
-            channelKey = StringCode.getStringCode(channel);
-        }
+        channelKey = ChannelKeyCache.getKey(channel);
+        classKey = ClassKeyCache.getKey(getClass());
     }
 
-    private long channelKey;
+    private Long channelKey;
+    private Long classKey;
 
     public String getChannel() {
         return null;
@@ -38,7 +39,7 @@ public abstract class AbstractMessage implements Message {
 
         net.cubespace.ComuCator.Packet.Protocol.Message message = new net.cubespace.ComuCator.Packet.Protocol.Message();
         message.setChannel(channelKey);
-        message.setPacket(StringCode.getStringCode(getClass().getName()));
+        message.setPacket(classKey);
         message.setMessage(byteArrayOutputStream.toByteArray());
 
         P2PServers.broadCastToAll(message);

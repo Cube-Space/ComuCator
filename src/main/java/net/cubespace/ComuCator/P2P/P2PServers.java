@@ -1,7 +1,9 @@
 package net.cubespace.ComuCator.P2P;
 
+import net.cubespace.ComuCator.MultiCast.MultiCastServerRunnable;
 import net.cubespace.ComuCator.Packet.DefinedPacket;
 import net.cubespace.ComuCator.Util.Logger;
+import net.cubespace.ComuCator.Util.Scheduler;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -11,6 +13,15 @@ import java.util.LinkedHashSet;
  */
 public class P2PServers {
     private final static LinkedHashSet<P2PServer> servers = new LinkedHashSet<>();
+
+    static {
+        try {
+            MultiCastServerRunnable multiCastServerRunnable = new MultiCastServerRunnable();
+            Scheduler.scheduleAtFixedRate(multiCastServerRunnable, 50, 50);
+        } catch (IOException e) {
+            Logger.error("Could not setup MultiCast", e);
+        }
+    }
 
     public static void broadCastToAll(DefinedPacket packet) {
         synchronized (servers) {
@@ -33,6 +44,12 @@ public class P2PServers {
     public static void removeServer(P2PServer server) {
         synchronized (servers) {
             servers.remove(server);
+        }
+    }
+
+    public static LinkedHashSet<P2PServer> getServers() {
+        synchronized (servers) {
+            return new LinkedHashSet<>(servers);
         }
     }
 }
