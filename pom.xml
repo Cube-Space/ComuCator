@@ -12,6 +12,7 @@
     <modules>
         <module>ComuCator-Core</module>
         <module>ComuCator-Bungee</module>
+        <module>ComuCator-Bukkit</module>
     </modules>
 
     <repositories>
