@@ -5,14 +5,40 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>net.cubespace</groupId>
-    <artifactId>ComuCator</artifactId>
-    <version>1.0.0</version>
+    <artifactId>ComuCator-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>ComuCator-Core</module>
+        <module>ComuCator-Bungee</module>
+    </modules>
+
+    <repositories>
+        <repository>
+            <id>cubespace</id>
+            <url>http://nexus.cube-space.net/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://nexus.cube-space.net/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.12.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.cubespace</groupId>
+            <artifactId>Yamler-Core</artifactId>
+            <version>2.2.1-SNAPSHOT</version>
         </dependency>
 
         <!-- testing -->
@@ -25,29 +51,19 @@
     </dependencies>
 
     <build>
+        <defaultGoal>clean deploy</defaultGoal>
+        <resources>
+            <resource>
+                <targetPath>.</targetPath>
+                <filtering>true</filtering>
+                <directory>${basedir}/src/main/resources</directory>
+                <includes>
+                    <include>*.yml</include>
+                    <include>*.properties</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>1.4</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <minimizeJar>true</minimizeJar>
-                            <finalName>${project.artifactId}</finalName>
-                            <artifactSet>
-                                <includes>
-                                    <include>io.netty:*</include>
-                                </includes>
-                            </artifactSet>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -108,5 +124,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <build.number>${BUILD_NUMBER}</build.number>
     </properties>
 </project>

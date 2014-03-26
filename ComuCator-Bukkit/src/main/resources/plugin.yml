@@ -1,0 +1,4 @@
+name: ComuCator
+main : net.cubespace.ComuCator.ComuCatorPlugin
+version: ${project.version}b-${build.number}
+author: geNAZt
