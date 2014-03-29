@@ -5,7 +5,6 @@ import net.cubespace.ComuCator.Cache.RegisteredPacketsCache;
 import net.cubespace.ComuCator.Packet.ByteHolder;
 import net.cubespace.ComuCator.Packet.DefinedPacket;
 import net.cubespace.ComuCator.Packet.PacketHandler;
-import net.cubespace.ComuCator.Util.Scheduler;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -39,7 +38,7 @@ public class P2PClient {
         this.server = server;
 
         ClientRunnable clientRunnable = new ClientRunnable(this);
-        Scheduler.schedule(clientRunnable, 5);
+        clientRunnable.start();
     }
 
     public synchronized void byteWrite(byte[] bytes) throws IOException {

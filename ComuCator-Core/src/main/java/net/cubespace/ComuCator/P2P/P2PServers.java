@@ -6,7 +6,6 @@ import net.cubespace.ComuCator.MultiCast.MultiCastServerRunnable;
 import net.cubespace.ComuCator.Packet.DefinedPacket;
 import net.cubespace.ComuCator.Packet.Protocol.Message;
 import net.cubespace.ComuCator.Util.Logger;
-import net.cubespace.ComuCator.Util.Scheduler;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,13 +18,22 @@ import java.util.LinkedHashSet;
 public class P2PServers {
     private final static LinkedHashSet<P2PServer> servers = new LinkedHashSet<>();
     private final static RegisteredPacketsCache packetCache = new RegisteredPacketsCache();
+    private static MultiCastServerRunnable multiCastServerRunnable;
 
     public static void init(Main config) {
         try {
-            MultiCastServerRunnable multiCastServerRunnable = new MultiCastServerRunnable(config);
-            Scheduler.scheduleAtFixedRate(multiCastServerRunnable, 50, 50);
+            multiCastServerRunnable = new MultiCastServerRunnable(config);
+            multiCastServerRunnable.start();
         } catch (IOException e) {
             Logger.error("Could not setup MultiCast", e);
+        }
+    }
+
+    public static void requestDiscovery() {
+        try {
+            multiCastServerRunnable.requestDiscovery();
+        } catch (IOException e) {
+            Logger.error("Could not request Discovery", e);
         }
     }
 

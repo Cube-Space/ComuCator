@@ -9,22 +9,13 @@ import java.util.concurrent.TimeUnit;
  * @author geNAZt (fabian.fassbender42@googlemail.com)
  */
 public class Scheduler {
-    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-    private static final ScheduledExecutorService fastExec = Executors.newScheduledThreadPool(7);
+    private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-    public static ScheduledFuture<?> schedule(Runnable runnable, long millis) {
-        if (millis < 20) {
-            return fastExec.schedule(runnable, millis, TimeUnit.MILLISECONDS);
-        }
-
+    public static ScheduledFuture<?> schedule(final Runnable runnable, long millis) {
         return executor.schedule(runnable, millis, TimeUnit.MILLISECONDS);
     }
 
-    public static ScheduledFuture<?> scheduleAtFixedRate(Runnable runnable, long delay, long interval) {
-        if (delay < 20) {
-            return fastExec.scheduleAtFixedRate(runnable, delay, interval, TimeUnit.MILLISECONDS);
-        }
-
+    public static ScheduledFuture<?> scheduleAtFixedRate(final Runnable runnable, long delay, long interval) {
         return executor.scheduleAtFixedRate(runnable, delay, interval, TimeUnit.MILLISECONDS);
     }
 }

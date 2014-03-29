@@ -79,6 +79,7 @@ public class P2PServer extends Thread {
             }, 50, 50);
 
             P2PServers.addServer(this);
+            P2PServers.requestDiscovery();
 
             while(!serverSocket.isClosed()) {
                 try {
@@ -101,9 +102,7 @@ public class P2PServer extends Thread {
                             }
                         }
                     }
-                } catch (SocketException e) {
-
-                }
+                } catch (SocketException e) { }
             }
 
             P2PServers.removeServer(this);

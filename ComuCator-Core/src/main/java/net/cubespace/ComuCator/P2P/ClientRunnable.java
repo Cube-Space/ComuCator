@@ -4,27 +4,27 @@ import net.cubespace.ComuCator.Packet.ByteHolder;
 import net.cubespace.ComuCator.Packet.DefinedPacket;
 import net.cubespace.ComuCator.Packet.ProtocolHandler;
 import net.cubespace.ComuCator.Util.Logger;
-import net.cubespace.ComuCator.Util.Scheduler;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
 
 /**
  * @author geNAZt (fabian.fassbender42@googlemail.com)
  */
-public class ClientRunnable implements Runnable {
+public class ClientRunnable extends Thread {
     private P2PClient client;
 
     public ClientRunnable(P2PClient client) {
         this.client = client;
+
+        setName("Client-" + client.getSocket().getRemoteSocketAddress());
     }
 
     @Override
     public void run() {
-        if (!client.getSocket().isClosed()) {
+        while(!client.getSocket().isClosed()) {
             try {
                 if (client.getSocket().getInputStream().available() > 0 || client.getQueue().size() > 0 || client.getByteQueue().size() > 0) {
                     if (client.getSocket().getInputStream().available() > 0) {
@@ -62,13 +62,13 @@ public class ClientRunnable implements Runnable {
                     }
                 }
 
-                Scheduler.schedule(this, 5);
-            } catch (IOException e) {
+                Thread.sleep(5);
+            } catch (Exception e) {
                 Logger.error("Could not tick client", e);
                 client.getServer().removeClient(client);
             }
-        } else {
-            client.getServer().removeClient(client);
         }
+
+        client.getServer().removeClient(client);
     }
 }
