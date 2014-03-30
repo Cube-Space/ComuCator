@@ -34,13 +34,6 @@ public class Server {
                 }
             }, 1000, 1000);
 
-            Scheduler.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    server.running = false;
-                }
-            }, 60000);
-
             server.startServers();
             server.register();
 

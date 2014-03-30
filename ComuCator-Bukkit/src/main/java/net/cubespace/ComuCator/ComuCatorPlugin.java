@@ -1,6 +1,8 @@
 package net.cubespace.ComuCator;
 
 import net.cubespace.ComuCator.Config.Main;
+import net.cubespace.ComuCator.P2P.P2PServer;
+import net.cubespace.ComuCator.P2P.P2PServers;
 import net.cubespace.ComuCator.Util.Logger;
 import net.cubespace.Yamler.Config.InvalidConfigurationException;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -29,6 +31,12 @@ public class ComuCatorPlugin extends JavaPlugin {
         } catch (IOException e) {
             e.printStackTrace();
             getLogger().info("Could not start metrics");
+        }
+    }
+
+    public void onDisable() {
+        for (P2PServer server : P2PServers.getServers()) {
+            server.shutdown();
         }
     }
 }
